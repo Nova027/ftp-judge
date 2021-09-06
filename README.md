@@ -41,8 +41,8 @@ ________________________________________________________________________________
 Warning: CODEJUD command will delete files with the same filename at Server-side.
 
 string status (returned by ftp_action function (and others) at Server-side) :
->  "-1" => Fatal Error at Client Side (Server kills Connection).
->  "f_error" => Ignorable Error at Client Side (Server discards current operation).
+>  "-1" => Fatal Error at Client Side (Server kills Connection). <br>
+>  "f_error" => Ignorable Error at Client Side (Server discards current operation). <br>
 >  None of the above => Successful operation.
 
 Under almost no circumstance, does the Running Server exit, unless explicitly forced to do so.
