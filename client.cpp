@@ -1,7 +1,7 @@
 /*
  Author - Swarnava Das (20CS60R07)
 
- Assignment 3 -- Assignment 4 -- C++ program for FTP Client with Codejudge Functionality
+ C++ program for FTP Client with Codejudge Functionality
  
 */
 
@@ -27,7 +27,6 @@ using namespace std;
 
 
 // Check if given name/path exists
-
 bool file_exists(string fname)
 {
 	struct stat fstats;
@@ -39,10 +38,7 @@ bool file_exists(string fname)
 }
 
 
-
-
 // Check if given name/path refers to a directory
-
 bool isdir(string fname)
 {
 	struct stat fstats;
@@ -55,10 +51,7 @@ bool isdir(string fname)
 }
 
 
-
-
 // Check if given name/path refers to a regular file
-
 bool isregular(string fname)
 {
 	struct stat fstats;
@@ -71,10 +64,7 @@ bool isregular(string fname)
 }
 
 
-
-
 // Check if the (valid) file is accessible
-
 bool file_readable(string fname)
 {
 	ifstream fin(fname);
@@ -90,10 +80,7 @@ bool file_readable(string fname)
 }
 
 
-
-
 // Return file size of a readable file
-
 unsigned long long int filesize(string fname)
 {
 	struct stat fstats;
@@ -105,30 +92,21 @@ unsigned long long int filesize(string fname)
 
 
 
-
-
-
-
-
 /*.................................................................... File Transfer Functions ...........................................................................*/
 
 
-
 // Send file of name 'fname' to Socket FD 'sockfd'
-
 void send_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
 {
     // File empty
     if(lastchunk == 0)
         return;
     
-
     char readbuf[1024];
 
     // Open file in Read Mode; Binary Mode
     ifstream fin(fname, ios::binary);
     
-
     unsigned long int i;
     for(i=0; i<iters; i++)
     {
@@ -150,15 +128,11 @@ void send_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
         send(sockfd, readbuf, 1024, 0);
     }
 
-
-
     bzero(readbuf, 1024);
-
 
     if(i<iters)
     {
         // Complete File couldn't be Read
-
         sprintf(readbuf, "%d", -1);
         send(sockfd, readbuf, 1024, 0);           // Indicate Unsuccessful Send
         
@@ -166,12 +140,9 @@ void send_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
         exit(0);
     }
 
-
-
     if(!fin.good())
     {
     	// To check for Unexpected Read errors
-
         send(sockfd, "garbage", 1024, 0);
         fin.close();
 
@@ -182,19 +153,14 @@ void send_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
         exit(0);
     }
 
-
     // Read & Send last chunk
     fin.read(readbuf, lastchunk);
     send(sockfd, readbuf, lastchunk, 0);
     
-
-
     bzero(readbuf, 1024);    
     
     sprintf(readbuf, "%d", 1);
     send(sockfd, readbuf, 1024, 0);			    // Indicate Successful Send
-
-
 
     fin.close();
 }
@@ -202,18 +168,12 @@ void send_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
 
 
 
-
-
-
-
-
 // Receive file of name 'fname' from Socket FD 'sockfd'
-
 void recv_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
 {
-	char writebuf[1024];
+    char writebuf[1024];
 
-	// Open file in Write Mode; Binary Mode
+    // Open file in Write Mode; Binary Mode
     ofstream fout(fname, ios::binary);
 
     // If file empty (done)
@@ -222,7 +182,6 @@ void recv_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
         fout.close();
         return;
     }
-
 
     for (unsigned long int i=0; i<iters; ++i)
     {
@@ -253,10 +212,7 @@ void recv_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
 
     }
 
-
-
     // Receive & Write Last chunk
-
     bzero(writebuf, 1024);
 
     int valread = read(sockfd, writebuf, lastchunk);
@@ -272,10 +228,7 @@ void recv_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
     if(fout)
         fout.write(writebuf, lastchunk);
 
-
-
     // Check if File was received successfully
-
     bzero(writebuf, 1024);
 
     valread = read(sockfd, writebuf, sizeof(writebuf));
@@ -297,17 +250,8 @@ void recv_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
         exit(0);
     }
 
-
     fout.close();
-
 }
-
-
-
-
-
-
-
 
 
 
@@ -316,17 +260,12 @@ void recv_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
 /*................................................... Request Processing Functions ............................................*/
 
 
-
 // Wait for Server to perform action specified by reqtype
 // Waits for: Retr / Stor / List / Dele
-
 string ftp_service(int reqcode, int sockfd, string fname="")
 {
 	char buff[1024];
-    bzero(buff, 1024);
-
-
-
+	bzero(buff, 1024);
 
 	if(reqcode == 3)
 	{
@@ -338,207 +277,164 @@ string ftp_service(int reqcode, int sockfd, string fname="")
 
 		// Wait to receive iteration count
 		int valread = read(sockfd, buff, sizeof(buff));
-        if(valread<=0)
-        {
-        	close(sockfd);
-        	perror("\n Error Receiving File Size!\n");
-        	exit(0);
-        }
+		if(valread<=0)
+		{
+			close(sockfd);
+			perror("\n Error Receiving File Size!\n");
+			exit(0);
+		}
 
-        if(strcmp(buff, "-1") == 0)
-        	return "Issue with file @ Server-side";
+		if(strcmp(buff, "-1") == 0)
+			return "Issue with file @ Server-side";
 
-        sscanf(buff, "%lu", &iters);
+		sscanf(buff, "%lu", &iters);
 
+		// Wait to receive last chunk size
+		valread = read(sockfd, buff, sizeof(buff));
+		if(valread<=0)
+		{
+			close(sockfd);
+			perror("\n Error Receiving File Size!\n");
+			exit(0);
+		}
 
+		sscanf(buff, "%d", &lastchunk);
 
+		// Send Status Ready / Not-Ready to Server
+		bzero(buff, 1024);
 
-        // Wait to receive last chunk size
-        valread = read(sockfd, buff, sizeof(buff));
-        if(valread<=0)
-        {
-        	close(sockfd);
-        	perror("\n Error Receiving File Size!\n");
-        	exit(0);
-        }
+		if(file_exists(fname))
+		{
+			sprintf(buff, "%d", -1);
+			send(sockfd, buff, 1024, 0);           // Indicate Termination Request
 
-        sscanf(buff, "%d", &lastchunk);
+			return "File Already exists!";
+		}
 
+		sprintf(buff, "%d", 1);
+		send(sockfd, buff, 1024, 0);           // Indicate Recv_ready status
 
-
-
-        // Send Status Ready / Not-Ready to Server
-
-        bzero(buff, 1024);
-
-        if(file_exists(fname))
-        {
-        	sprintf(buff, "%d", -1);
-        	send(sockfd, buff, 1024, 0);           // Indicate Termination Request
-
-        	return "File Already exists!";
-        }
-
-        sprintf(buff, "%d", 1);
-        send(sockfd, buff, 1024, 0);           // Indicate Recv_ready status
-
-
-        recv_file(sockfd, iters, lastchunk, fname);      // Start Receiving if Ready
-        return "File Received Successfully";
+		recv_file(sockfd, iters, lastchunk, fname);      // Start Receiving if Ready
+		return "File Received Successfully";
 	}
 
-
-
-
-
-
-
-
-
+	
 	if(reqcode == 4)
 	{
 		/*.... STOR command ....*/
-
-
-        // Check if the given fname is valid, readable, etc.
-
+		
+		// Check if the given fname is valid, readable, etc.
 		if(!file_exists(fname))
 		{
-            sprintf(buff, "%d", -1);
+			sprintf(buff, "%d", -1);
 			send(sockfd, buff, 1024, 0);
 			return " File not found!";
 		}
 
 		if(isdir(fname))
 		{
-            sprintf(buff, "%d", -1);
-            send(sockfd, buff, 1024, 0);
+			sprintf(buff, "%d", -1);
+			send(sockfd, buff, 1024, 0);
 			return " Specified path is a Directory";
 		}
 
 		if(!isregular(fname))
 		{
-            sprintf(buff, "%d", -1);
-            send(sockfd, buff, 1024, 0);
+			sprintf(buff, "%d", -1);
+			send(sockfd, buff, 1024, 0);
 			return " Specified name is not a Valid File!";
 		}
 
 		if(!file_readable(fname))
 		{
-            sprintf(buff, "%d", -1);
-            send(sockfd, buff, 1024, 0);
+			sprintf(buff, "%d", -1);
+			send(sockfd, buff, 1024, 0);
 			return " Specified File does not have Read Access";
 		}
 
-
-
 		// Calculate File Size
+		unsigned long int iters = filesize(fname)/1024;
+		int lastchunk = filesize(fname)%1024;
 
-        unsigned long int iters = filesize(fname)/1024;
-        int lastchunk = filesize(fname)%1024;
-        
-        if(lastchunk == 0 && iters != 0)
-        {
-            iters--;
-            lastchunk = 1024;
-        }
+		if(lastchunk == 0 && iters != 0)
+		{
+		    iters--;
+		    lastchunk = 1024;
+		}
 
+		sprintf(buff, "%lu", iters);
+		send(sockfd, buff, 1024, 0);        // Send iteration count (Req.d to set File Receive loop)
 
-        sprintf(buff, "%lu", iters);
-        send(sockfd, buff, 1024, 0);        // Send iteration count (Req.d to set File Receive loop)
+		bzero(buff, 1024);
+		sprintf(buff, "%d", lastchunk);
+		send(sockfd, buff, 1024, 0);        // Send size of last chunk
 
-        bzero(buff, 1024);
-        sprintf(buff, "%d", lastchunk);
-        send(sockfd, buff, 1024, 0);        // Send size of last chunk        
+		// Check if Server is Ready to Receive
+		int valread = read(sockfd, buff, sizeof(buff));
+		if(valread<=0 || (strcmp(buff, "1")!=0 && strcmp(buff, "-1")!=0))
+		{
+			// Indicate Unexpected Server behavior
+			close(sockfd);
+			perror("\n Error Receiving File Size!\n");
+			exit(0);
+		}
 
+		if(strcmp(buff, "1") == 0)
+		{
+			// Send file if it's ready (Will Always happen for CODEJUD)
+			send_file(sockfd, iters, lastchunk, fname);
+			return "Transfer Complete";
+		}
 
-
-
-        // Check if Server is Ready to Receive
-
-        int valread = read(sockfd, buff, sizeof(buff));
-        if(valread<=0 || (strcmp(buff, "1")!=0 && strcmp(buff, "-1")!=0))
-        {
-        	// Indicate Unexpected Server behavior
-
-        	close(sockfd);
-        	perror("\n Error Receiving File Size!\n");
-        	exit(0);
-        }
-
-        if(strcmp(buff, "1") == 0)
-        {
-        	// Send file if it's ready (Will Always happen for CODEJUD)
-
-            send_file(sockfd, iters, lastchunk, fname);
-            return "Transfer Complete";
-        }
-
-
-        return "File already exists at Server-side";
+		return "File already exists at Server-side";
 	}
 
 
-
-
-
-
-
-
 	if(reqcode == 2)
-    {
-        /*..... DELE .....*/
+	{
+		/*..... DELE .....*/
 
 		// Wait for File status: "-1" => Failure
-
 		int valread = read(sockfd, buff, sizeof(buff));
-        if(valread<=0)
-        {
-        	close(sockfd);
-        	perror("\n Error Receiving File Status!\n");
-        	exit(0);
-        }
+		
+		if(valread<=0)
+		{
+			close(sockfd);
+			perror("\n Error Receiving File Status!\n");
+			exit(0);
+		}
 
-        if(strcmp(buff, "-1") == 0)
-        	return "Issue with file @ Server-side";
+		if(strcmp(buff, "-1") == 0)
+			return "Issue with file @ Server-side";
 
-        return "No Issues reported by Server";   
-    }
-
-
-
+		return "No Issues reported by Server";   
+	}
 
 
+	if(reqcode == 1)
+	{
+		/* LIST - Receive & Print List of files @ Server-side */
+		cout<<"Printing List of Names:"<<endl;
 
+		while(true)
+		{
+			// Wait for Filenames
+			int valread = read(sockfd, buff, sizeof(buff));
+			if(valread<=0)
+			{
+				close(sockfd);
+				perror("\n Error Receiving Names!\n");
+				exit(0);
+			}
 
+			if(strcmp(buff, ".") == 0)
+				return "Server sent LIST_END signal";
 
-    if(reqcode == 1)
-    {
-    	// LIST - Receive & Print List of files @ Server-side
+			cout<<"> "<<buff<<endl;		// Print File / Folder name received
 
-    	cout<<"Printing List of Names:"<<endl;
-
-    	while(true)
-    	{
-    		// Wait for Filenames
-    		int valread = read(sockfd, buff, sizeof(buff));
-        	if(valread<=0)
-        	{
-        		close(sockfd);
-        		perror("\n Error Receiving Names!\n");
-        		exit(0);
-        	}
-
-        	if(strcmp(buff, ".") == 0)
-        		return "Server sent LIST_END signal";
-
-        	cout<<"> "<<buff<<endl;		// Print File / Folder name received
-
-        	bzero(buff, 1024);
-    	}
-
-    }
-
+			bzero(buff, 1024);
+		}
+	}
 
 
 	return "empty";		// Default (won't arise)
@@ -546,15 +442,7 @@ string ftp_service(int reqcode, int sockfd, string fname="")
 
 
 
-
-
-
-
-
-
-
 // Identify the type of Request sent to Server
-
 int reqtype(string req)
 {
     if(req=="LIST")
@@ -577,13 +465,7 @@ int reqtype(string req)
 
 
 
-
-
-
-
-
 // Extract Filename from entered FTP Command
-
 string extract_fname(string req)
 {
 	int len = req.length();
@@ -602,163 +484,112 @@ string extract_fname(string req)
 
 
 
-
-
-
-
-
-
-
 /*................................................... Socket Programming & Communication Driver Functions ............................................*/
-
-
-
 
 // Function designed for Chat between Client and Server
 // Valid Requests: EXIT, DELE, RETR, STOR, QUIT
-
 void cscomm(int sockfd) 
 {
 	char buff[1024];
 
-
 	// Loop indefinitely until Client Exits
+	while(true)
+	{
+		/*....................... Send Command to Server ................*/
+		bzero(buff, sizeof(buff));
 
-    while(true)
-    {
-    	
-    	/*....................... Send Command to Server ................*/
+		printf("\n Enter Request to send: ");
+		cin.getline(buff, 1024);
 
-    	bzero(buff, sizeof(buff));
+		// Send Request
+		write(sockfd, buff, sizeof(buff));
 
-        printf("\n Enter Request to send: ");
-    	cin.getline(buff, 1024);
+		// Check if Client entered "QUIT" Command
+		if(strcmp(buff, ":exit")==0 || strcmp(buff, "QUIT")==0)
+				break;
 
-    	// Send Request
-        write(sockfd, buff, sizeof(buff));
+		string req(buff);
 
-        // Check if Client entered "QUIT" Command
-        if(strcmp(buff, ":exit")==0 || strcmp(buff, "QUIT")==0)
-			break;
-
-
-        string req(buff);
-
-        printf("\n Request sent to Server: \"%s\"\n", buff);
+		printf("\n Request sent to Server: \"%s\"\n", buff);
 
 
+		/*....................... Get Request Served ....................*/      
+		// Check request type
+		int reqcode = reqtype(req);
 
+		string status;
+		string fname;
 
+		if(reqcode == 0)
+		    status = "Invalid Request";
 
+		else if(reqcode == 1)
+		    status = ftp_service(reqcode, sockfd);    // LIST
 
+		else if(reqcode <= 4)
+		{
+		    // < DELE / RETR / STOR >
+		    fname = extract_fname(req);
+		    status = ftp_service(reqcode, sockfd, fname);
+		}
 
-        /*....................... Get Request Served ....................*/      
+		else
+		{
+		    // CODEJUD
+		    status = "Server senpai is judging me";
 
-        // Check request type
-    	int reqcode = reqtype(req);
+		    // Extract fname, type
+		    string ftype = "";
+		    fname = "";
 
-    	string status;
-        string fname;
+		    for(int i = 8; i < req.length(); ++i)
+			fname += req[i];
 
+		    for(int i = req.length() - 1; req[i]!='.' && i>=0; --i)
+			ftype = req[i] + ftype;
 
-        if(reqcode == 0)
-            status = "Invalid Request";
+		    if(ftype!="c" && ftype!="cpp")
+			status = "Unexpected File Type";
 
+		    else
+			status = ftp_service(4, sockfd, fname);       // STOR (4 is reqcode)
 
-        else if(reqcode == 1)
-            status = ftp_service(reqcode, sockfd);    // LIST
-        
+		    // Leave & Wait for Server's Code Judgement
+		}
 
-        else if(reqcode <= 4)
-        {
-            // < DELE / RETR / STOR >
+		cout<<" Status: "<<status<<endl;
 
-            fname = extract_fname(req);
-
-            status = ftp_service(reqcode, sockfd, fname);
-        }
-
-
-        else
-        {
-            // CODEJUD
-            status = "Server senpai is judging me";
-
-            // Extract fname, type
-            string ftype = "";
-            fname = "";
-
-            for(int i = 8; i < req.length(); ++i)
-                fname += req[i];
-
-            for(int i = req.length() - 1; req[i]!='.' && i>=0; --i)
-                ftype = req[i] + ftype;
-            
-
-            if(ftype!="c" && ftype!="cpp")
-                status = "Unexpected File Type";
-
-            else
-                status = ftp_service(4, sockfd, fname);       // STOR (4 is reqcode)
-
-
-            // Leave & Wait for Server's Code Judgement
-
-        }
-
-
-
-    	
-    	cout<<" Status: "<<status<<endl;
-
-    	if(status[0] == ' ')
-    		continue;				// Equivalent to f_error @ Server-side     ......(Will also work if CODEJUD fails at Client-side)
-    	
-
-
-
-
-
+		if(status[0] == ' ')
+			continue;				// Equivalent to f_error @ Server-side     ......(Will also work if CODEJUD fails at Client-side)
 
 
 		/*............. Read Final ACK Reply Message from Server ...........*/
+		bzero(buff, sizeof(buff));
 
-        bzero(buff, sizeof(buff));
+		// Read the Reply from Server and copy it in buffer
+		int valread = read(sockfd, buff, sizeof(buff));
 
-        // Read the Reply from Server and copy it in buffer
-        int valread = read(sockfd, buff, sizeof(buff));
+		// Check for Read errors
+		if(valread<=0)
+		{
+			close(sockfd);
+			perror("\n Reply Not Received!\n");
+			exit(0);
+		}
 
-        // Check for Read errors
-        if(valread<=0)
-        {
-        	close(sockfd);
-        	perror("\n Reply Not Received!\n");
-        	exit(0);
-        }
+		printf(" Reply received from Server: \"%s\" \n", buff);
 
-        printf(" Reply received from Server: \"%s\" \n", buff);
-
-    }
-
-} 
-
-
-
-
-
-
-
+	}
+}
 
 
 
 
 
 // Driver Function to Set up Client-side Socket
-
 int main(int argc, char const *argv[]) 
 {
 	// IPA and Server Port no. as Command Line Args
-
 	char const *ip_temp = argv[1];
 	char const *ipa;
 
@@ -771,11 +602,9 @@ int main(int argc, char const *argv[])
 
 	int PORT = atoi(argv[2]);
 
-
 	//................... Connect with the Server ..................//
 
 	int sock = 0; 
-	
 	struct sockaddr_in serv_addr;	
 
 	// Create Socket
@@ -786,10 +615,7 @@ int main(int argc, char const *argv[])
 	}
 
 	printf("\n Socket Created...\n");
-
 	
-
-
 
 	// Assign Socket Port-8080, Type, IP
 	serv_addr.sin_family = AF_INET; 
@@ -813,20 +639,10 @@ int main(int argc, char const *argv[])
 	printf("\n Connection Established...\n");
 
 
-
-
-
-
-
 	//.................... Communication .....................//
-
+	
 	cscomm(sock);
-
-
-
-
 	close(sock);
-
-
+	
 	return 0; 
 } 
