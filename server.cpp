@@ -1,7 +1,7 @@
 /*
  Author - Swarnava Das (20CS60R07)
 
- Assignment 4 -- C++ program for FTP Server with Codejudge Functionality
+ C++ program for FTP Server with Codejudge Functionality
  
 */
 
@@ -35,13 +35,9 @@ using namespace std;
 
 
 
-
-
 /*............................................................... Helper Functions (To check File statistics) .........................................................*/
 
-
 // Check if given name/path exists
-
 bool file_exists(string fname)
 {
     struct stat fstats;
@@ -53,10 +49,7 @@ bool file_exists(string fname)
 }
 
 
-
-
 // Check if given name/path refers to a directory
-
 bool isdir(string fname)
 {
     struct stat fstats;
@@ -69,10 +62,7 @@ bool isdir(string fname)
 }
 
 
-
-
 // Check if given name/path refers to a regular file
-
 bool isregular(string fname)
 {
     struct stat fstats;
@@ -85,10 +75,7 @@ bool isregular(string fname)
 }
 
 
-
-
 // Check if the (valid) file is accessible
-
 bool file_readable(string fname)
 {
     ifstream fin(fname);
@@ -104,10 +91,7 @@ bool file_readable(string fname)
 }
 
 
-
-
 // Return file size of a readable file
-
 unsigned long long int filesize(string fname)
 {
     struct stat fstats;
@@ -119,30 +103,20 @@ unsigned long long int filesize(string fname)
 
 
 
-
-
-
-
-
 /*.................................................................... Data Transfer Functions ...........................................................................*/
 
-
-
 // Send file of name 'fname' to Socket FD 'sockfd'
-
 string send_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
 {
     // File empty
     if(lastchunk == 0)
         return "Transfer Complete";
 
-
     char readbuf[1024];
 
     // Open file in Read Mode; Binary Mode
     ifstream fin(fname, ios::binary);
-    
-    
+        
     unsigned long int i;
     for(i=0; i<iters; i++)
     {
@@ -165,10 +139,7 @@ string send_file(int sockfd, unsigned long int iters, int lastchunk, string fnam
         send(sockfd, readbuf, 1024, 0);
     }
 
-    
-
     bzero(readbuf, 1024);
-
 
     if(i<iters)
     {
@@ -181,9 +152,6 @@ string send_file(int sockfd, unsigned long int iters, int lastchunk, string fnam
         
         return "-1";
     }
-
-
-
 
     if(!fin.good())
     {
@@ -198,34 +166,22 @@ string send_file(int sockfd, unsigned long int iters, int lastchunk, string fnam
         return "-1";        
     }
 
-
     // Read & Send Last Chunk
     fin.read(readbuf, lastchunk);
     send(sockfd, readbuf, lastchunk, 0);
     
-
-
     bzero(readbuf, 1024);    
     
     sprintf(readbuf, "%d", 1);
     send(sockfd, readbuf, 1024, 0);             // Indicate Successful Send
 
-
     fin.close();
-
-	return "Transfer Complete";
+    return "Transfer Complete";
 }
 
 
 
-
-
-
-
-
-
 // Receive file of name 'fname' from Socket FD 'sockfd'
-
 string recv_file(int sockfd, unsigned long int iters, int lastchunk, string fname)
 {
     char writebuf[1024];
@@ -239,8 +195,6 @@ string recv_file(int sockfd, unsigned long int iters, int lastchunk, string fnam
         fout.close();
         return "File Received Successfully";
     }
-
-
 
     for (unsigned long int i=0; i<iters; ++i)
     {
@@ -266,14 +220,9 @@ string recv_file(int sockfd, unsigned long int iters, int lastchunk, string fnam
             printf("Error Writing to File!\n");
             return "-1";
         }
-
     }
 
-
-
-
     // Receive & Write Last chunk
-
     bzero(writebuf, 1024);
 
     int valread = read(sockfd, writebuf, lastchunk);
@@ -288,10 +237,7 @@ string recv_file(int sockfd, unsigned long int iters, int lastchunk, string fnam
     if(fout)
         fout.write(writebuf, lastchunk);
 
-
-
     // Check if File was received successfully
-
     bzero(writebuf, 1024);
 
     valread = read(sockfd, writebuf, sizeof(writebuf));
@@ -303,7 +249,6 @@ string recv_file(int sockfd, unsigned long int iters, int lastchunk, string fnam
         return "-1";
     }
 
-
     if(strcmp(writebuf, "-1") == 0)
     {
         fout.close();
@@ -312,29 +257,14 @@ string recv_file(int sockfd, unsigned long int iters, int lastchunk, string fnam
         return "-1";
     }
 
-
     fout.close();
-
 
     return "File Received Successfully";
 }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 // Sends List of Files at Current Directory to Client
-
 string listfiles(int sockfd)
 {
     struct dirent *entry;
@@ -380,13 +310,7 @@ string listfiles(int sockfd)
 
 
 
-
-
-
-
 /*................................................... Request Processing Functions ............................................*/
-
-
 
 // Perform action specified by reqtype : Retr / Stor / Dele
 
@@ -395,15 +319,11 @@ string ftp_action(int reqcode, int sockfd, string fname="")
     char buff[1024];
     bzero(buff, 1024);
 
-
-
     if(reqcode == 3)
     {
         /*..... RETR command .....*/
 
-
         // Check if the given fname is valid, readable, etc.
-
         if(!file_exists(fname))
         {
             sprintf(buff, "%d", -1);
@@ -432,9 +352,7 @@ string ftp_action(int reqcode, int sockfd, string fname="")
             return "Specified File does not have Read Access";
         }
 
-
         // Calculate File Size
-
         unsigned long int iters = filesize(fname)/1024;
         int lastchunk = filesize(fname)%1024;
         
@@ -444,7 +362,6 @@ string ftp_action(int reqcode, int sockfd, string fname="")
             lastchunk = 1024;
         }
 
-
         sprintf(buff, "%lu", iters);
         send(sockfd, buff, 1024, 0);        // Send iteration count (Req.d to set File Receive loop)
 
@@ -452,12 +369,7 @@ string ftp_action(int reqcode, int sockfd, string fname="")
         sprintf(buff, "%d", lastchunk);
         send(sockfd, buff, 1024, 0);        // Send size of last chunk        
 
-
-
-
-
         // Check if Client is Ready to Receive
-
         int valread = read(sockfd, buff, sizeof(buff));
 
         if(valread<=0 || (strcmp(buff, "1")!=0 && strcmp(buff, "-1")!=0))
@@ -466,27 +378,16 @@ string ftp_action(int reqcode, int sockfd, string fname="")
             return "-1";
         }
 
-
         if(strcmp(buff, "1") == 0)
             return send_file(sockfd, iters, lastchunk, fname);      // Send file if it's ready
 
-
         return "File already exists at Client-side";
-
     }
-
-
-
-
-
-
 
 
     if(reqcode >= 4)
     {
         /*..... STOR (also works with CODEJUD) command ....*/
-
-
         unsigned long int iters = 0;
         int lastchunk;
 
@@ -500,9 +401,6 @@ string ftp_action(int reqcode, int sockfd, string fname="")
 
         sscanf(buff, "%lu", &iters);
 
-
-
-
         // Wait for last chunk size
         valread = read(sockfd, buff, sizeof(buff));
         if(valread<=0)
@@ -510,18 +408,12 @@ string ftp_action(int reqcode, int sockfd, string fname="")
 
         sscanf(buff, "%d", &lastchunk);
 
-
-
-
-
         // Send Status Ready / Not-Ready to Server
-
         bzero(buff, 1024);
 
         if(reqcode == 4 && file_exists(fname))
         {
             // Need not Check for CODEJUD
-
             sprintf(buff, "%d", -1);
             send(sockfd, buff, 1024, 0);           // Indicate Termination Request
 
@@ -531,28 +423,15 @@ string ftp_action(int reqcode, int sockfd, string fname="")
         sprintf(buff, "%d", 1);
         send(sockfd, buff, 1024, 0);           // Indicate Recv_ready status
 
-
-
-
         return recv_file(sockfd, iters, lastchunk, fname);      // Start Receiving if Ready
     }
-
-
-
-
-
-
-
-
 
 
     if(reqcode == 2)
     {
         /*..... DELE .....*/
-
-
+	
         // Check if the given fname is valid, readable, etc.
-
         if(!file_exists(fname))
         {
             sprintf(buff, "%d", -1);
@@ -590,7 +469,6 @@ string ftp_action(int reqcode, int sockfd, string fname="")
         }
 
         // Deletion is Successful only if all the above if statements don't hold
-
         sprintf(buff, "%d", 1);
         send(sockfd, buff, 1024, 0);
 
@@ -599,77 +477,45 @@ string ftp_action(int reqcode, int sockfd, string fname="")
     }
 
 
-
-
     return "empty";        // Default (won't arise)
 }
 
 
 
-
-
-
-
-
-
-
-
 // Identify the type of Request Received from Client
-
 int reqtype(string req)
 {
-	if(req=="LIST")
-		return 1;
+    if(req=="LIST")
+	return 1;
 
     if(req[0]=='D' && req[1]=='E' && req[2]=='L' && req[3]=='E' && req[4]==' ')
         return 2;
 
-	if(req[0]=='R' && req[1]=='E' && req[2]=='T' && req[3]=='R' && req[4]==' ')
-		return 3;
+    if(req[0]=='R' && req[1]=='E' && req[2]=='T' && req[3]=='R' && req[4]==' ')
+	return 3;
 
-	if(req[0]=='S' && req[1]=='T' && req[2]=='O' && req[3]=='R' && req[4]==' ')
-		return 4;
+    if(req[0]=='S' && req[1]=='T' && req[2]=='O' && req[3]=='R' && req[4]==' ')
+	return 4;
 
     if(req[0]=='C' && req[1]=='O' && req[2]=='D' && req[3]=='E' && req[4]=='J' && req[5]=='U' && req[6]=='D' && req[7]==' ')
         return 5;
 
-	return 0;
+    return 0;
 }
 
 
 
-
-
-
-
 // Extract Filename from entered FTP Command
-
 string extract_fname(string req)
 {
 	int len = req.length();
-
+	
 	string fname = "";
-
 	for(int i = 5; i < len; ++i)
 		fname += req[i];
 
 	return fname;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -701,9 +547,6 @@ string codejudge(string fname, string ftype)
     remove(efname.c_str());
 
 
-
-
-
     /*.......................... Compilation Phase .....................*/
 
     string compil = cfname + " -o " + efname + " >/dev/null 2>&1";
@@ -725,24 +568,15 @@ string codejudge(string fname, string ftype)
     report += "COMPILE_SUCCESS";
 
 
-
-
-
-
-
     /*....................... Execution Phase ..........................*/
-
 
     string ex_cmd = "timeout 1 ./" + efname + " >> " + ofname + " 2> /dev/null";
 
     int ex_stat = 0;    // { 0:Success; 1:TLE ; 2:Runtime_Error }
 
-
-
     if(!file_exists(ifname) || isdir(ifname) || !isregular(ifname))
     {
         // Doesn't take inputs
-
         clock_gettime(CLOCK_MONOTONIC, &start);
         cmdstatus = system(ex_cmd.c_str());         // Run Executable File with timeout
         clock_gettime(CLOCK_MONOTONIC, &end);
@@ -757,12 +591,9 @@ string codejudge(string fname, string ftype)
             ex_stat = 2;    // RTE
     }
     
-
-
     else
     {
         // Takes input from ifname file
-
         string testcase;
         ifstream fin(ifname);
 
@@ -785,11 +616,9 @@ string codejudge(string fname, string ftype)
                 testcase = tmp;
             }
 
-
             clock_gettime(CLOCK_MONOTONIC, &start);
             cmdstatus = system(("echo \"" + testcase + "\" | " + ex_cmd).c_str());               // Run Executable File with timeout
             clock_gettime(CLOCK_MONOTONIC, &end);
-
 
             long double extime = (end.tv_sec - start.tv_sec)*1e9;
             extime += (end.tv_nsec - start.tv_nsec);                // time (in nanosecs)
@@ -811,10 +640,7 @@ string codejudge(string fname, string ftype)
     }
 
 
-
-
     // Check execution status
-
     if(ex_stat == 1 || ex_stat == 2)
     {
         if(ex_stat == 1)
@@ -832,19 +658,11 @@ string codejudge(string fname, string ftype)
     report += "\tRUN_SUCCESS";
 
 
-
-
-
-
-
-
     /*........................... Result Matching Phase .........................*/
-
 
     if(!file_exists(tfname) || isdir(tfname) || !isregular(tfname) || !file_exists(ofname) || isdir(ofname) || !isregular(ofname))
     {
         // If Testcase or Output File missing or Inaccessible (Corner case)
-
         report += "\tCANNOT_TEST";
 
         remove(ofname.c_str());
@@ -853,13 +671,10 @@ string codejudge(string fname, string ftype)
         return report;
     }
 
-
-
     ifstream outf(ofname);
     ifstream tst(tfname);
 
     int match_stat = 0;                 // {0:Success; 1:Mismatch; 2:Unexpected_Matching_Error}
-
     string printed, expected;
 
     while(true)
@@ -875,7 +690,6 @@ string codejudge(string fname, string ftype)
         if(!getline(tst, expected))
         {
             match_stat = 2;             // tst reached EOF but outf did not
-
             break;
         }
         
@@ -883,13 +697,11 @@ string codejudge(string fname, string ftype)
         if(elen!=0 && expected[elen-1] == '\r')     // Removing CR if present
         {
             string tmp = "";
-
             for(int i = 0; i < elen-1; ++i)
                 tmp += expected[i];
 
             expected = tmp;
         }
-
 
         if(printed != expected)
         {
@@ -898,11 +710,7 @@ string codejudge(string fname, string ftype)
         }
     }
 
-
-
-
     // Check Match status
-
     if(match_stat == 0)
         report += "\tACCEPTED";
 
@@ -912,29 +720,11 @@ string codejudge(string fname, string ftype)
     else
         report += "\tUNEXPECTED_MATCHING_ERROR";
 
-
-
     remove(ofname.c_str());
     remove(efname.c_str());
 
     return report;
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -943,18 +733,14 @@ string codejudge(string fname, string ftype)
 /*................................................... Socket Programming & Communication Driver Functions ............................................*/
 
 
-
 // Function designed for ONE-TIME Message Exchange between Single Client and Server
 // Returns True iff the ONE-TIME exchange was succesful
-
 bool scComm(int sd, struct sockaddr_in client)
 {
     /*........................ Read Client's Message .........................*/
-
     char buff[1024];
     bzero(buff, 1024);
 
-    
     // Read the message from client and copy it in buffer
     int valread = read(sd, buff, 1024);
     
@@ -963,32 +749,17 @@ bool scComm(int sd, struct sockaddr_in client)
     { 
         // Client disconnected , get the details and print 
         printf("Client %s:%d Disconnected\n\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
-
-
-        //Close the socket (mark as 0 in list) for reuse 
+        
+	//Close the socket (mark as 0 in list) for reuse 
         close(sd);
-
         return false;
     } 
     
-
     string req(buff);
-
     printf("Action Requested by Client: \"%s\"\n", buff);
 
 
-
-
-
-
-
-
-
-
-     
     /*............................ Process Request ..........................*/
-
-
     char reply[1024];
     bzero(reply, 1024);
 
@@ -1000,19 +771,15 @@ bool scComm(int sd, struct sockaddr_in client)
 
     bool existed = false;       // Flag to check if file existed before Execution of Command
 
-
     if(reqcode == 0)
         status = "Invalid Request";
-
 
     else if(reqcode == 1)
         status = listfiles(sd);    // LIST
     	
-
     else if(reqcode <= 4)
     {
         // < DELE / RETR / STOR >
-
     	fname = extract_fname(req);
 
         if(file_exists(fname))
@@ -1020,7 +787,6 @@ bool scComm(int sd, struct sockaddr_in client)
 
     	status = ftp_action(reqcode, sd, fname);
     }
-
 
     else
     {
@@ -1038,44 +804,33 @@ bool scComm(int sd, struct sockaddr_in client)
         for(int j = 8; j < i; ++j)
             fname += req[j];
 
-
         if(ftype!="c" && ftype!="cpp")
             status = "Not a Valid Code";
 
         else
         {
             status = ftp_action(reqcode, sd, (fname+"."+ftype));    // STOR
-
             if(status != "-1" && status != "f_error")
                 status = codejudge(fname, ftype);
 
-
             // Delete File once Judgement is done           ......(Regardless of Successful Evaluation or Evaluation Status)
             remove(fname.c_str());
-
         }
-
     }
 
     
-
-
-
     // Check Communication Status & Do the needful
-
     if(status == "-1")
     {
         if(reqcode == 2 && !existed)
         {
             // Del file which Client tried to Store Unsuccessfully
             // (only if it didn't exist prior to request)
-
             remove(fname.c_str());
         }
 
         // Client disconnected , get the details and print 
         printf("Client %s:%d Disconnected\n\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
-
 
         //Close the socket (mark as 0 in list) for reuse 
         close(sd);
@@ -1083,33 +838,16 @@ bool scComm(int sd, struct sockaddr_in client)
         return false;
     }
 
-
     if(status == "f_error")
     {
         cout<<"Issue with file @ Client-side\n"<<endl;
-
         return true;
     }
-
-
 
     sprintf(reply, "%s", status.c_str());
     
     
-
-
-
-
-
-
-
-
-
-
-
-
     /*..................... Send final ACK reply ...................*/
-
     bzero(buff, 1024);
 
     // Keep Server Message in buff
@@ -1120,30 +858,9 @@ bool scComm(int sd, struct sockaddr_in client)
 
     printf("Final Reply Sent: \"%s\"\n\n", buff);
 
-
-
     return true;        // If one communication round was successful
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1153,25 +870,20 @@ bool scComm(int sd, struct sockaddr_in client)
 
 int main(int argc, char const *argv[])
 {
-	int PORT = atoi(argv[1]);
-
+    int PORT = atoi(argv[1]);
     int opt = 1;
     int master_socket, new_conn;
     int activity, sd; 
     int max_sd;
-
+	
     int client_socket[max_clients];
-
     struct sockaddr_in servaddr, cli; 
     
     fd_set readfds;     // Set of Socket Descriptors
     
-
-
     // Initialise all client_sockets to 0 (closed) 
     for(int i = 0; i < max_clients; i++) 
         client_socket[i] = 0;
-
         
     // Create a TCP Socket as Master socket
     master_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -1184,8 +896,6 @@ int main(int argc, char const *argv[])
     
     printf("Socket Created..\n");
 
-
-    
     // Set master socket to allow multiple connections
     if(setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ) 
     { 
@@ -1194,9 +904,6 @@ int main(int argc, char const *argv[])
     }
 
     printf("Multi-Client support...\n");
-
-
-
     
     // Assign IP; PORT
     bzero(&servaddr, sizeof(servaddr));
@@ -1205,10 +912,6 @@ int main(int argc, char const *argv[])
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port = htons(PORT); 
     
-
-
-
-
     // Binding newly created socket to given IP and Port
     if (bind(master_socket, (struct sockaddr *)&servaddr, sizeof(servaddr))<0) 
     { 
@@ -1218,9 +921,6 @@ int main(int argc, char const *argv[])
     
     printf("Socket Bind complete..\n"); 
 
-
-
-    
     // Listening for Connections (max 3)
     if (listen(master_socket, 3) < 0) 
     {
@@ -1229,10 +929,6 @@ int main(int argc, char const *argv[])
     }
 
     printf("\nMaster Server Listening..\n");
-
-
-
-
 
  
     int addrlen = sizeof(cli); 
@@ -1247,8 +943,6 @@ int main(int argc, char const *argv[])
         FD_SET(master_socket, &readfds); 
         max_sd = master_socket; 
         
-
-
         // Add Child sockets to SD set
         for(int i = 0; i < max_clients; i++) 
         {
@@ -1258,28 +952,20 @@ int main(int argc, char const *argv[])
             if(sd > 0) 
                 FD_SET(sd, &readfds); 
             
-
             // Update upper limit of SDs if necessary
             if(sd > max_sd) 
                 max_sd = sd; 
         }
     
-
         // Wait for an event (interrupt) on one of the sockets indefinitely 
         activity = select(max_sd+1, &readfds, NULL, NULL, NULL); 
     
-
         if((activity < 0) && (errno!=EINTR))
         {
             perror("Select error...\n");
             exit(0);
         }
         
-        
-
-
-
-
         // Check Master socket for incoming connections
         if(FD_ISSET(master_socket, &readfds)) 
         {
@@ -1292,8 +978,6 @@ int main(int argc, char const *argv[])
             }
 
             printf("New Connection Established... Client ID = %s : %d\n", inet_ntoa(cli.sin_addr) , ntohs(cli.sin_port));
-            
-
 
             // add new socket to array of sockets 
             for(int i = 0; i < max_clients; i++) 
@@ -1302,18 +986,11 @@ int main(int argc, char const *argv[])
                 if(client_socket[i] == 0 ) 
                 {
                     client_socket[i] = new_conn;
-                        
                     break; 
                 }
             }
-
         }
         
-
-
-
-
-
         // Perform communication between waiting clients and active child sockets
         for(int i = 0; i < max_clients; i++) 
         {
@@ -1327,18 +1004,10 @@ int main(int argc, char const *argv[])
                     client_socket[i] = 0;   // Client exit, close the SD for other clients to connect
             }
         }
-
-
-
     }
-
-
 
     // Close the master socket
     close(master_socket);
 
-
-
-
-	return 0;
+    return 0;
 }
