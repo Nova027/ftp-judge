@@ -1,3 +1,10 @@
+## Online Judge on top of Multi-Client FTP Server
+
+- Typical FTP functionalities implemented using TCP Sockets : Download/Upload/Delete File, List Directory.
+- Supports uploading C/C++ programs via FTP for auto-evaluated response : Compile Error / Runtime Error / TLE / Testcase Failed / Success.
+
+______________________________________________________________________________________________________
+
 Compilation, Execution examples :==
 
 Compile server: g++ server.cpp -o server.out
@@ -20,11 +27,11 @@ Server always deletes temporary files and Code files associated with CODEJUD
 ________________________________________________________________________________________________________
 
 Commands implemented & Their Syntaxes: (By default, <filename> INCLUDES extension, unless stated otherwise)
-1. LIST -> LIST
-2. DELE -> DELE <filename>
-3. RETR -> RETR <filename>
-4. STOR -> STOR <filename>
-5. CODEJUD -> CODEJUD <(.c/.cpp)filename>
+1. LIST (List contents of Directory) -> LIST
+2. DELE (Delete File) -> DELE <filename>
+3. RETR (Download File) -> RETR <filename>
+4. STOR (Upload File) -> STOR <filename>
+5. CODEJUD (Upload C/C++ File for Evaluation) -> CODEJUD <(.c/.cpp)filename>
 6. QUIT -> QUIT			..... Pressing CTRL+C also Quits Client
 
 Examples for RETR, STOR, DELE:
@@ -41,9 +48,9 @@ ________________________________________________________________________________
 Warning: CODEJUD command will delete files with the same filename at Server-side.
 
 string status (returned by ftp_action function (and others) at Server-side) :
->  "-1" => Fatal Error at Client Side (Server kills Connection). <br>
->  "f_error" => Ignorable Error at Client Side (Server discards current operation). <br>
->  None of the above => Successful operation.
+> -  "-1" => Fatal Error at Client Side (Server kills Connection). <br>
+> -  "f_error" => Ignorable Error at Client Side (Server discards current operation). <br>
+> - None of the above => Successful operation.
 
 Under almost no circumstance, does the Running Server exit, unless explicitly forced to do so.
 Other minor bugs may cause Server exit in very rare unforeseen cases. In that case, Client also exits normally.
