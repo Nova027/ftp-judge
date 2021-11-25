@@ -7,10 +7,10 @@ ________________________________________________________________________________
 
 Compilation, Execution examples :==
 
-Compile server: g++ server.cpp -o server.out
+Compile server: g++ server.cpp -o server.out ; 
 Compiler client: g++ client.cpp -o client.out
 
-Run server: ./server.out 8080
+Run server: ./server.out 8080 ; 
 Run client: ./client.out localhost 8080
 
 ________________________________________________________________________________________________________
